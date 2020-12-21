@@ -41,20 +41,40 @@ def summoner(summ):
     for participant in currMatch['participantIdentities']:
       if participant['player']['accountId'] == summId:
         participantId = participant['participantId']-1
-        print(participantId)
         break
     
+    if currMatch['participants'][participantId]['stats']['deaths'] == 0:
+      currMatch['participants'][participantId]['stats']['deaths'] = 1
     kda = '{}/{}/{}'.format(currMatch['participants'][participantId]['stats']['kills'], currMatch['participants'][participantId]['stats']['deaths'], currMatch['participants'][participantId]['stats']['assists'])
     ratio = ((currMatch['participants'][participantId]['stats']['kills'] + currMatch['participants'][participantId]['stats']['assists']) / currMatch['participants'][participantId]['stats']['deaths'])
-    #matchStats.append('{} - {} - {} - {} - {}'.format(currMatch['gameMode'], currMatch['participants'][participantId]['stats']['win'], currMatch[participantId]['championId'], kda, ratio))
-    matchStats.append('{} / {} / {}'.format(currMatch['gameMode'], kda, ratio))
-  print(matchStats)
+    won = 'Defeat'
+    if currMatch['participants'][participantId]['stats']['win']:
+      won = 'Victory'
+    multi = multis(multis(currMatch['participants'][participantId]['stats']['largestMultiKill']))
 
+    matchStats.append('{} - {} - {} - {} - {}'.format(currMatch['gameMode'], won, 'champ', kda, ratio, multi))
+
+    matchString = ''
+    for stat in matchStats:
+      matchString += str(stat) + '\n'
 
   #begin embedding
-  embedVar = discord.Embed(title=summoner['name'], description="Level: {} ID: {}".format(summoner['summonerLevel'], summId), color = 0xf47ff)
+  embedVar = discord.Embed(title=summoner['name'], description="Level: {}".format(summoner['summonerLevel']), color = 0xf47ff)
+  embedVar.add_field(name='Past 10 Matches', value=matchString, inline=False)
   embedVar.set_thumbnail(url = summonerIcon)
 
   return embedVar
+
+def multis(spree):
+  multis = {
+      0: 'No Kills, Shame.',
+      1: 'A Kill',
+      2: 'Double Kill.',
+      3: 'Triple Kill!',
+      4: 'Quadra Kill!',
+      5: 'PENTA KILL!'
+    }
+  return multis.get(spree, 'Nothing')
+
 
 client.run(os.environ.get('DISCORD_TOKEN'))
